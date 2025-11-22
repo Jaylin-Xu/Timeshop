@@ -94,51 +94,6 @@
       </div>
       <!-- ========= 注册成功后规则弹窗结束 ========= -->
 
-      <!-- ========= 使用教程遮罩（登录成功后可选显示） ========= -->
-      <div id="tutorialOverlay" class="tutorial-overlay">
-        <div class="tutorial-backdrop"></div>
-        <div class="tutorial-card">
-          <h2 class="tutorial-title">How to use Time Shop / 使用说明</h2>
-
-          <div class="tutorial-columns">
-            <!-- English block -->
-            <div class="tutorial-block">
-              <h3>English</h3>
-              <ol class="tutorial-steps">
-                <li>Sign up or log in with a username. Time, coins and cards are saved to this account.</li>
-                <li>Keep this page active to earn time. Every 120 seconds a “Collect +1” button appears for 3 seconds.
-                  Click it to get 1 coin.</li>
-                <li>When you have 3 coins, press “Enter Lottery” to draw a card.</li>
-                <li>All cards you draw stay in “Inventory”. Online users and their recent cards are shown on the left.
-                </li>
-              </ol>
-            </div>
-
-            <!-- 中文 block -->
-            <div class="tutorial-block">
-              <h3>中文</h3>
-              <ol class="tutorial-steps">
-                <li>用用户名注册或登录，时间、硬币和卡牌都会保存在这个账号下。</li>
-                <li>保持此页面在前台即可累积时间。每 120 秒会短暂出现“领取 +1”按钮，3 秒内点击可获得 1 枚硬币。</li>
-                <li>当前硬币 ≥ 3 时，可以点击“参与抽卡”抽一张卡牌。</li>
-                <li>你抽到的卡会保存在左下角的「卡牌背包」，左侧还能看到在线用户和他们最近的卡牌。</li>
-              </ol>
-            </div>
-          </div>
-
-          <div class="tutorial-actions">
-            <label class="tutorial-checkbox">
-              <input type="checkbox" id="tutorialDontShow" />
-              <span>Don’t show again on this browser / 下次不再自动显示</span>
-            </label>
-            <button id="tutorialCloseBtn" class="btn primary">
-              Got it / 我知道了
-            </button>
-          </div>
-        </div>
-      </div>
-      <!-- ========= 使用教程遮罩结束 ========= -->
-
       <!-- 顶部标题 + 计时信息 -->
       <header class="app-header">
         <div class="header-left">
@@ -201,9 +156,8 @@
 
               <!-- 规则说明：120 秒一次，3 秒内点击才记入硬币 -->
               <p class="fine">
-                Every 120 seconds of active time, a bonus coin button appears here for 3 seconds; click it in time to
-                gain +1 coin, otherwise it disappears with no reward.<br />
-                每累计 120 秒有效时间，会在此处短暂出现一个奖励硬币按钮 3 秒；在时限内点击可获得 +1 硬币，错过则不会增加。
+                Every 120s, the "Collect +1" button only lasts for 3 seconds. Don't miss it.<br />
+                每累计 120 秒，会出现 3 秒的奖励按钮。点中 +1 硬币，错过则没有奖励。
               </p>
             </section>
 
@@ -343,11 +297,7 @@
       <div id="imageViewerLabel" class="image-viewer-label"></div>
 
       <div class="image-viewer-review">
-        <input
-          id="imageViewerReviewInput"
-          type="text"
-          placeholder="Write a review about this card / 针对这张卡写下你的评价"
-        />
+        <input id="imageViewerReviewInput" type="text" placeholder="Write a review about this card / 针对这张卡写下你的评价" />
         <button id="imageViewerReviewSend" type="button" class="btn primary image-viewer-review-send">
           Send / 发送
         </button>
