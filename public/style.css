@@ -80,7 +80,6 @@ body {
   flex: 1;
 }
 
-/* 顶部大标题：比卡片标题大一号 */
 .brand {
   font-size: 1.3rem;
   font-weight: 700;
@@ -225,12 +224,6 @@ main {
   min-height: 180px;
 }
 
-/* 所有卡片标题统一字号（Player / 玩家、Online User / 在线用户 等） */
-.card h2 {
-  font-size: 0.95rem;
-  margin: 0;
-}
-
 /* 标题行 */
 
 .section-header {
@@ -238,6 +231,11 @@ main {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+}
+
+.card h2 {
+  font-size: 0.9rem;
+  margin: 0;
 }
 
 .section-tag {
@@ -740,6 +738,7 @@ main {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  overflow-y: auto; /* 关键：教程内容可上下滚动 */
 }
 
 .signup-guide-title {
@@ -763,7 +762,7 @@ main {
 
 .signup-guide-block h3 {
   margin: 0 0 4px 0;
-  font-size: 0.9rem;
+  font-size: 0.82rem;
   font-weight: 600;
   color: #4b5563;
 }
@@ -809,103 +808,6 @@ main {
 .signup-guide-close:hover {
   transform: translateY(-1px);
   background: #e5e7eb;
-}
-
-/* =========================================
-   Tutorial Overlay / 使用教程遮罩
-   ========================================= */
-
-.tutorial-overlay {
-  position: fixed;
-  inset: 0;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 2500;
-}
-
-.tutorial-overlay.show {
-  display: flex;
-}
-
-.tutorial-backdrop {
-  position: absolute;
-  inset: 0;
-  background: rgba(15, 23, 42, 0.15);
-  backdrop-filter: blur(4px);
-}
-
-.tutorial-card {
-  position: relative;
-  z-index: 1;
-  max-width: 960px;
-  max-height: 80vh;
-  width: 96vw;
-  padding: 18px 20px 14px;
-  border-radius: 18px;
-  background: #ffffff;
-  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.22);
-  border: 1px solid #e5e7eb;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  font-size: 0.85rem;
-  color: #111827;
-}
-
-.tutorial-title {
-  font-size: 1rem;
-  font-weight: 700;
-  margin: 0 0 4px 0;
-}
-
-.tutorial-columns {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.tutorial-block h3 {
-  margin: 0 0 4px 0;
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: #4b5563;
-}
-
-.tutorial-steps {
-  margin: 0;
-  padding-left: 1.1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  font-size: 0.8rem;
-  color: #374151;
-}
-
-.tutorial-steps li {
-  line-height: 1.5;
-}
-
-.tutorial-actions {
-  margin-top: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.tutorial-checkbox {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.78rem;
-  color: #6b7280;
-}
-
-.tutorial-checkbox input {
-  width: 14px;
-  height: 14px;
 }
 
 /* =========================================
@@ -1231,7 +1133,6 @@ main {
     height: 260px;
   }
 
-  .tutorial-columns,
   .signup-guide-columns {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -1251,7 +1152,6 @@ main {
     border-radius: 16px;
   }
 
-  /* 手机上 brand 仍然比卡片标题略大 */
   .brand {
     font-size: 1.1rem;
     font-weight: 700;
@@ -1271,6 +1171,15 @@ main {
     padding: 6px 8px;
   }
 
+  /* 登录 & 教程窗口在移动端贴顶部显示 */
+  .auth-overlay,
+  .signup-guide-overlay {
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 32px;
+    padding-bottom: 16px;
+  }
+
   .grid.inventory {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -1285,10 +1194,6 @@ main {
     border-radius: 16px;
   }
 
-  /* 手机上统一把卡片标题稍微缩小一点 */
-  .card h2 {
-    font-size: 0.9rem;
-  }
 
   .section-desc {
     font-size: 0.75rem;
@@ -1314,9 +1219,8 @@ main {
     max-height: 55vh;
   }
 
-  .tutorial-card,
   .signup-guide-card {
-    max-width: 100vw;
+    max-width: 94vw;
     padding: 14px 12px 12px;
   }
 }
