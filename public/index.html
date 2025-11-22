@@ -1,25 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <!-- 浏览器 tab 上的 emoji favicon：⌛️ -->
-  <link
-    rel="icon"
-    href="data:image/svg+xml,
+  <link rel="icon" href="data:image/svg+xml,
     <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'>
       <text y='0.9em' font-size='90'>⌛️</text>
-    </svg>"
-  />
+    </svg>" />
 
   <title>Time Shop · 时间商店</title>
   <link rel="stylesheet" href="./style.css" />
 </head>
+
 <body>
   <div class="page">
     <div class="app">
-      <!-- ========= 登录 / 注册遮罩（帐号入口） ========= -->
+      <!-- ========= 登录 / 注册遮罩 ========= -->
       <div id="authOverlay" class="auth-overlay">
         <div class="auth-card">
           <h1>Time Shop · 时间商店</h1>
@@ -48,13 +47,108 @@
       </div>
       <!-- ========= 登录遮罩结束 ========= -->
 
+      <!-- ========= 注册成功后规则弹窗（美观版） ========= -->
+      <div id="signupGuideOverlay" class="signup-guide-overlay">
+        <div class="signup-guide-backdrop"></div>
+        <div class="signup-guide-card">
+          <button id="signupGuideClose" class="signup-guide-close" type="button" aria-label="Close guide">
+            ×
+          </button>
+          <h2 class="signup-guide-title">Welcome to Time Shop / 欢迎来到时间商店</h2>
+          <p class="signup-guide-intro">
+            A short guide about how time and coins work in this site.<br />
+            下方是关于本网站「时间与硬币」规则的简要说明。
+          </p>
+
+          <div class="signup-guide-columns">
+            <div class="signup-guide-block">
+              <h3>English</h3>
+              <ol>
+                <li>Time will only accumulate while you remain on this page. Time is your money.</li>
+                <li>Every 2 mins, a "Collect +1" button will appear. Clicking it will grant you
+                  1 coin.</li>
+                <li>The "Collect +1" button only lasts for 3 seconds. Don't miss it.</li>
+                <li>Each lottery costs 3 coins. You may draw a card of different rarity, or get no prize.</li>
+                <li>Welcome! Here are two coins as a gift for you. Good luck!</li>
+              </ol>
+            </div>
+
+            <div class="signup-guide-block">
+              <h3>中文</h3>
+              <ol>
+                <li>只有停留在当此页面时，时间才会持续累积。时间是你的金钱。</li>
+                <li>每累计 120 秒，会短暂出现“领取 +1 / Collect +1”按钮，点到就可以多获得 1 枚硬币。</li>
+                <li>“领取 +1 / Collect +1”按钮只有 3 秒，没点到就不会获得硬币。</li>
+                <li>每次抽卡消耗 3 枚硬币，可能抽到不同稀有度的卡牌，也有可能未中奖。</li>
+                <li>欢迎你的加入，送给你2枚硬币作为礼物。祝你好运！</li>
+              </ol>
+            </div>
+          </div>
+
+          <div class="signup-guide-actions">
+            <button id="signupGuideGotIt" class="btn primary">
+              Got it / 我知道了
+            </button>
+          </div>
+        </div>
+      </div>
+      <!-- ========= 注册成功后规则弹窗结束 ========= -->
+
+      <!-- ========= 使用教程遮罩（登录成功后可选显示） ========= -->
+      <div id="tutorialOverlay" class="tutorial-overlay">
+        <div class="tutorial-backdrop"></div>
+        <div class="tutorial-card">
+          <h2 class="tutorial-title">How to use Time Shop / 使用说明</h2>
+
+          <div class="tutorial-columns">
+            <!-- English block -->
+            <div class="tutorial-block">
+              <h3>English</h3>
+              <ol class="tutorial-steps">
+                <li>Sign up or log in with a username. Time, coins and cards are saved to this account.</li>
+                <li>Keep this page active to earn time. Every 120 seconds a “Collect +1” button appears for 3 seconds.
+                  Click it to get 1 coin.</li>
+                <li>When you have 3 coins, press “Enter Lottery” to draw a card.</li>
+                <li>All cards you draw stay in “Inventory”. Online users and their recent cards are shown on the left.
+                </li>
+              </ol>
+            </div>
+
+            <!-- 中文 block -->
+            <div class="tutorial-block">
+              <h3>中文</h3>
+              <ol class="tutorial-steps">
+                <li>用用户名注册或登录，时间、硬币和卡牌都会保存在这个账号下。</li>
+                <li>保持此页面在前台即可累积时间。每 120 秒会短暂出现“领取 +1”按钮，3 秒内点击可获得 1 枚硬币。</li>
+                <li>当前硬币 ≥ 3 时，可以点击“参与抽卡”抽一张卡牌。</li>
+                <li>你抽到的卡会保存在左下角的「卡牌背包」，左侧还能看到在线用户和他们最近的卡牌。</li>
+              </ol>
+            </div>
+          </div>
+
+          <div class="tutorial-actions">
+            <label class="tutorial-checkbox">
+              <input type="checkbox" id="tutorialDontShow" />
+              <span>Don’t show again on this browser / 下次不再自动显示</span>
+            </label>
+            <button id="tutorialCloseBtn" class="btn primary">
+              Got it / 我知道了
+            </button>
+          </div>
+        </div>
+      </div>
+      <!-- ========= 使用教程遮罩结束 ========= -->
+
       <!-- 顶部标题 + 计时信息 -->
       <header class="app-header">
         <div class="header-left">
           <div class="brand">⌛️ Time Shop · 时间商店</div>
+          <div class="brand-subline">
+            Idle time-based card game · 一个用「时间」换取卡牌的小实验
+          </div>
           <div class="subtitle">
-            Each account starts with 2 base coins; time will only continue to accumulate while the account remains in the current window.<br />
-            每个账号起初拥有 2 枚基础硬币；只有停留在本窗口内时，时间才会继续累积。
+            Time will only continue to accumulate while the account remains in the current window.<br />
+            只有停留在本窗口内时，时间才会继续累积。
           </div>
         </div>
 
@@ -88,7 +182,6 @@
             <section class="card card-player">
               <h2>Player / 玩家</h2>
 
-              <!-- 描述文字已按要求删除，仅保留统计与按钮 -->
               <div class="player-stats">
                 <div class="stat-pill">
                   <span class="stat-label">User / 用户</span>
@@ -101,14 +194,17 @@
                 </div>
 
                 <!-- 每 120 秒出现一次，3 秒内可点击领取 +1 coin 的按钮 -->
-                <button
-                  id="coinSpawnBtn"
-                  class="btn coin-claim-btn"
-                  style="display: none;"
-                >
+                <button id="coinSpawnBtn" class="btn coin-claim-btn" style="display: none;">
                   Collect +1 / 领取 +1
                 </button>
               </div>
+
+              <!-- 规则说明：120 秒一次，3 秒内点击才记入硬币 -->
+              <p class="fine">
+                Every 120 seconds of active time, a bonus coin button appears here for 3 seconds; click it in time to
+                gain +1 coin, otherwise it disappears with no reward.<br />
+                每累计 120 秒有效时间，会在此处短暂出现一个奖励硬币按钮 3 秒；在时限内点击可获得 +1 硬币，错过则不会增加。
+              </p>
             </section>
 
             <!-- Online User：只展示在线账号的用户名、coins（可隐藏）、最近卡片等级 -->
@@ -138,16 +234,37 @@
               Spend 3 coins to draw one card with different rarity levels.<br />
               每次消耗 3 枚硬币，可以抽取一张不同稀有度的卡牌。
             </p>
+            <p class="section-desc">
+              Each button shows its drop rate and, when clicked, reviews from players who own that card.<br />
+              每个等级按钮会显示掉落率，点击可查看拥有者的评价。
+            </p>
 
+            <!-- 稀有度 + 概率：这里的按钮可以点击查看该等级评论 -->
             <div class="rarity-row">
-              <div class="rarity-item"><span class="badge badge-S">S</span><span>0.2%</span></div>
-              <div class="rarity-item"><span class="badge badge-A">A</span><span>1.8%</span></div>
-              <div class="rarity-item"><span class="badge badge-B">B</span><span>3%</span></div>
-              <div class="rarity-item"><span class="badge badge-C">C</span><span>3%</span></div>
-              <div class="rarity-item"><span class="badge badge-D">D</span><span>3%</span></div>
-              <div class="rarity-item"><span class="badge badge-E">E</span><span>22%</span></div>
-              <div class="rarity-item"><span class="badge badge-F">F</span><span>22%</span></div>
-              <div class="rarity-item"><span class="badge badge-none">No</span><span>45%</span></div>
+              <button class="rarity-item" type="button" data-level="S">
+                <span class="badge badge-S">S</span><span>0.5%</span>
+              </button>
+              <button class="rarity-item" type="button" data-level="A">
+                <span class="badge badge-A">A</span><span>2%</span>
+              </button>
+              <button class="rarity-item" type="button" data-level="B">
+                <span class="badge badge-B">B</span><span>5%</span>
+              </button>
+              <button class="rarity-item" type="button" data-level="C">
+                <span class="badge badge-C">C</span><span>10%</span>
+              </button>
+              <button class="rarity-item" type="button" data-level="D">
+                <span class="badge badge-D">D</span><span>12.5%</span>
+              </button>
+              <button class="rarity-item" type="button" data-level="E">
+                <span class="badge badge-E">E</span><span>25%</span>
+              </button>
+              <button class="rarity-item" type="button" data-level="F">
+                <span class="badge badge-F">F</span><span>25%</span>
+              </button>
+              <button class="rarity-item" type="button" data-level="NONE">
+                <span class="badge badge-none">No</span><span>20%</span>
+              </button>
             </div>
 
             <!-- 翻牌动画 -->
@@ -158,7 +275,7 @@
                     <img id="cardFront" src="./assets/cards/back.jpg" alt="Card back" />
                   </div>
                   <div class="flip-face flip-back">
-                    <img id="cardBack" src="./assets/cards/NONE.jpg" alt="Result card" />
+                    <img id="cardBack" src="./assets/cards/back.jpg" alt="Result card" />
                   </div>
                 </div>
               </div>
@@ -209,18 +326,50 @@
       </main>
 
       <footer class="app-footer">
-        <div>
-        @Jaylin Xu
-        </div>
-        <div>
-        2025
-        </div>
+        <div>@Jaylin Xu</div>
+        <div>2025</div>
       </footer>
     </div>
   </div>
 
-  <!-- socket.io 客户端脚本由服务器注入 -->
+  <!-- Inventory 大图 + 评论模态层 -->
+  <div id="imageViewer" class="image-viewer">
+    <div class="image-viewer-backdrop"></div>
+    <div class="image-viewer-content">
+      <button id="imageViewerClose" class="image-viewer-close" type="button" aria-label="Close full image">
+        ×
+      </button>
+      <img id="imageViewerImg" alt="Card preview" />
+      <div id="imageViewerLabel" class="image-viewer-label"></div>
+
+      <div class="image-viewer-review">
+        <input
+          id="imageViewerReviewInput"
+          type="text"
+          placeholder="Write a review about this card / 针对这张卡写下你的评价"
+        />
+        <button id="imageViewerReviewSend" type="button" class="btn primary image-viewer-review-send">
+          Send / 发送
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lottery / 评论查看模态层 -->
+  <div id="reviewModal" class="review-modal">
+    <div class="review-modal-backdrop"></div>
+    <div class="review-modal-content">
+      <button id="reviewModalClose" class="review-modal-close" type="button" aria-label="Close reviews">
+        ×
+      </button>
+      <h3 id="reviewModalTitle" class="review-modal-title">Reviews</h3>
+      <div id="reviewModalBody" class="review-modal-body"></div>
+    </div>
+  </div>
+
+  <!-- socket.io 客户端脚本 -->
   <script src="/socket.io/socket.io.js"></script>
   <script src="./app.js"></script>
 </body>
+
 </html>
