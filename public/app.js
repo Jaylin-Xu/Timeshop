@@ -4,8 +4,7 @@
    - 计时 + Collect +1 硬币
    - 抽卡翻转动画
    - 在线用户显示
-   - 使用教程（中英双列）
-   - 注册成功后规则弹窗（美观版）
+   - 注册成功后规则弹窗（中英双列）
    - Inventory 点击卡牌 → 大图 + 评论输入
    - Lottery 稀有度按钮 → 查看该等级的评论
    - 评论发送成功 / 失败 Toast 提示
@@ -27,7 +26,7 @@ let state = {
   coinsSpent: 0,
   cards: [],
   coinsClaimed: 0,
-  coinEventsTriggered: 0,
+  coinEventsTriggered: 0
 };
 
 /* =============================
@@ -42,18 +41,13 @@ const signupBtn = document.getElementById("signupBtn");
 const loginBtn = document.getElementById("loginBtn");
 const authMessageEl = document.getElementById("authMessage");
 
-// 注册成功规则弹窗
+// 注册成功规则弹窗（唯一教程窗口）
 const signupGuideOverlay = document.getElementById("signupGuideOverlay");
 const signupGuideClose = document.getElementById("signupGuideClose");
 const signupGuideGotIt = document.getElementById("signupGuideGotIt");
 const signupGuideBackdrop = signupGuideOverlay
   ? signupGuideOverlay.querySelector(".signup-guide-backdrop")
   : null;
-
-// 使用教程 overlay
-const tutorialOverlay = document.getElementById("tutorialOverlay");
-const tutorialCloseBtn = document.getElementById("tutorialCloseBtn");
-const tutorialDontShow = document.getElementById("tutorialDontShow");
 
 // 顶部时间 / 用户
 const usernameLabel = document.getElementById("usernameLabel");
@@ -87,8 +81,12 @@ const imageViewerClose = document.getElementById("imageViewerClose");
 const imageViewerBackdrop = imageViewer
   ? imageViewer.querySelector(".image-viewer-backdrop")
   : null;
-const imageViewerReviewInput = document.getElementById("imageViewerReviewInput");
-const imageViewerReviewSend = document.getElementById("imageViewerReviewSend");
+const imageViewerReviewInput = document.getElementById(
+  "imageViewerReviewInput"
+);
+const imageViewerReviewSend = document.getElementById(
+  "imageViewerReviewSend"
+);
 
 // 按等级查看评论模态
 const reviewModal = document.getElementById("reviewModal");
@@ -169,6 +167,7 @@ function fmtHMS(s) {
 }
 
 function log(msg) {
+  if (!logBox) return;
   const el = document.createElement("div");
   el.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
   logBox.prepend(el);
@@ -218,8 +217,6 @@ function hideSignupGuide() {
   if (!signupGuideOverlay) return;
   signupGuideOverlay.classList.remove("show");
   document.body.style.overflow = "";
-  // 关闭注册规则弹窗后，再按设置显示使用教程 overlay
-  maybeShowTutorial();
 }
 
 if (signupGuideClose) {
@@ -240,7 +237,7 @@ async function postJSON(url, body) {
   const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
+    body: JSON.stringify(body)
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
@@ -263,7 +260,7 @@ async function syncState() {
     await postJSON("/api/state", {
       username: currentUser,
       password: currentPassword,
-      state,
+      state
     });
   } catch (err) {
     console.warn("syncState failed:", err.message);
@@ -342,47 +339,6 @@ function renderOnlineUsers(users) {
 }
 
 /* =============================
-   使用教程 overlay：显示 / 隐藏
-   ============================= */
-
-const TUTORIAL_KEY = "timeShopTutorialHidden";
-
-function showTutorial() {
-  if (!tutorialOverlay) return;
-  tutorialOverlay.classList.add("show");
-  document.body.style.overflow = "hidden";
-}
-
-function hideTutorial() {
-  if (!tutorialOverlay) return;
-  tutorialOverlay.classList.remove("show");
-  document.body.style.overflow = "";
-}
-
-function maybeShowTutorial() {
-  if (!tutorialOverlay) return;
-  const hidden = localStorage.getItem(TUTORIAL_KEY);
-  if (hidden === "1") return;
-  showTutorial();
-}
-
-if (tutorialCloseBtn) {
-  tutorialCloseBtn.addEventListener("click", () => {
-    if (tutorialDontShow && tutorialDontShow.checked) {
-      localStorage.setItem(TUTORIAL_KEY, "1");
-    }
-    hideTutorial();
-  });
-}
-
-if (tutorialOverlay) {
-  const backdrop = tutorialOverlay.querySelector(".tutorial-backdrop");
-  if (backdrop) {
-    backdrop.addEventListener("click", hideTutorial);
-  }
-}
-
-/* =============================
    登录 / 注册逻辑
    ============================= */
 
@@ -418,14 +374,16 @@ async function handleAuth(action) {
         coinsSpent: 0,
         cards: [],
         coinsClaimed: 0,
-        coinEventsTriggered: 0,
+        coinEventsTriggered: 0
       };
     loggedIn = true;
 
     authOverlay.style.display = "none";
     renderInventory();
     renderStats();
-    log(`Welcome, ${currentUser}! / 欢迎，${currentUser}！你的账号数据已载入。`);
+    log(
+      `Welcome, ${currentUser}! / 欢迎，${currentUser}！你的账号数据已载入。`
+    );
     sendPresence(true);
     setAuthMessage(
       action === "signup"
@@ -434,11 +392,9 @@ async function handleAuth(action) {
       false
     );
 
-    // 注册：先弹规则弹窗；登录：直接按设置弹使用教程
+    // 注册成功：弹出规则教程窗口；登录则直接进入游戏
     if (action === "signup") {
       showSignupGuide();
-    } else {
-      maybeShowTutorial();
     }
   } catch (err) {
     setAuthMessage(
@@ -459,6 +415,7 @@ loginBtn.addEventListener("click", () => handleAuth("login"));
    ============================= */
 
 function renderInventory() {
+  if (!invGrid) return;
   invGrid.innerHTML = "";
   if (!state.cards || !state.cards.length) {
     const d = document.createElement("div");
@@ -469,9 +426,7 @@ function renderInventory() {
     return;
   }
 
-  state.cards.forEach((c) => {
-    const level = c; // 'S'...'F' 或 'NONE'
-
+  state.cards.forEach((level) => {
     const box = document.createElement("div");
     box.className = "inv-item";
     box.dataset.level = level;
@@ -570,7 +525,7 @@ if (imageViewerReviewSend) {
         username: currentUser,
         password: currentPassword,
         cardLevel: currentPreviewLevel,
-        text,
+        text
       });
       showToast("Review sent / 发送成功");
       if (imageViewerReviewInput) imageViewerReviewInput.value = "";
@@ -695,11 +650,15 @@ function showCoinButton() {
   coinSpawnBtn.disabled = false;
   coinSpawnBtn.classList.add("coin-claim-visible");
 
-  log("A coin is ready! Click within 3 seconds to claim. / 有一枚硬币可以领取，请在 3 秒内点击按钮。");
+  log(
+    "A coin is ready! Click within 3 seconds to claim. / 有一枚硬币可以领取，请在 3 秒内点击按钮。"
+  );
 
   coinButtonTimeoutId = setTimeout(() => {
     if (coinButtonVisible) {
-      log("You missed a coin (button expired). / 这次硬币已经消失，没有被领取。");
+      log(
+        "You missed a coin (button expired). / 这次硬币已经消失，没有被领取。"
+      );
       hideCoinButton();
     }
   }, COIN_LIFETIME);
@@ -741,7 +700,10 @@ if (coinSpawnBtn) {
 function maybeSpawnCoinFromTime() {
   const total = state.totalSeconds || 0;
   const thresholdIndex = Math.floor(total / COIN_INTERVAL);
-  if (thresholdIndex > (state.coinEventsTriggered || 0) && !coinButtonVisible) {
+  if (
+    thresholdIndex > (state.coinEventsTriggered || 0) &&
+    !coinButtonVisible
+  ) {
     state.coinEventsTriggered = thresholdIndex;
     showCoinButton();
     syncState();
@@ -766,7 +728,7 @@ function sendPresence(force = false) {
     totalSeconds: state.totalSeconds || 0,
     coins: getAvailableCoins(),
     lastCards: (state.cards || []).slice(-3),
-    hideCoins: hideCoinsInSocial,
+    hideCoins: hideCoinsInSocial
   });
 }
 
@@ -896,7 +858,7 @@ resetBtn.addEventListener("click", () => {
     coinsSpent: 0,
     cards: [],
     coinsClaimed: 0,
-    coinEventsTriggered: 0,
+    coinEventsTriggered: 0
   };
 
   renderInventory();
