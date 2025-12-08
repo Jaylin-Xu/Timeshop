@@ -1,17 +1,17 @@
-/* =========================================
-   Global layout
-   ========================================= */
+/* Global layout */
 
+/* Universal box-sizing so padding and borders are included
+   in the element’s declared width/height. */
 *,
 *::before,
 *::after {
   box-sizing: border-box;
 }
 
+/* Design tokens and a light color-scheme hint.*/
 :root {
   color-scheme: light;
-  --bg-blur: rgba(255, 255, 255, 0.9);
-  --card-bg: #ffffff;
+  --card-bg: rgba(255, 255, 255, 0.96);
   --card-border: #e5e7eb;
   --accent: #3b82f6;
   --accent-soft: rgba(59, 130, 246, 0.1);
@@ -28,100 +28,107 @@ body {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
     "Segoe UI", sans-serif;
   color: var(--text-main);
-  background: #f3f4f6;
 }
 
 body {
   -webkit-font-smoothing: antialiased;
+  line-height: 1.6;
 }
 
-/* 背景：浅灰 + background.jpg */
+/* Full-viewport background; the app card sits on top. */
 .page {
   min-height: 100vh;
   padding: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #f3f4f6;
+  background-color: #0f172a;
   background-image: url("./background.jpg");
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
 }
 
-/* 主容器 */
+/* Main app container. */
 .app {
   width: 100%;
   max-width: 1180px;
   min-height: 640px;
   border-radius: 26px;
   background: rgba(255, 255, 255, 0.94);
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
-  backdrop-filter: blur(10px);
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  box-shadow: 0 8px 10px rgba(15, 20, 40, 0.25);
   padding: 18px 20px 16px;
   display: flex;
   flex-direction: column;
+  gap: 12px;
 }
 
-/* =========================================
-   Header
-   ========================================= */
+/* Header */
 
 .app-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: 16px;
-  margin-bottom: 14px;
+  margin-bottom: 8px;
 }
 
 .header-left {
   flex: 1;
+  min-width: 0;
+}
+
+/* Brand row: title + “View rules” button. */
+.brand-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .brand {
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   font-weight: 700;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.03em;
 }
 
 .brand-subline {
   margin-top: 4px;
-  font-size: 0.82rem;
+  font-size: 0.85rem;
   color: var(--text-soft);
 }
 
 .subtitle {
-  margin-top: 6px;
+  margin-top: 4px;
   font-size: 0.8rem;
   color: var(--text-soft);
-  line-height: 1.4;
 }
 
-/* 计时面板 */
-
+/* Right-hand time panel. */
 .timer-panel {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   min-width: 260px;
+  align-items: flex-end;
+  text-align: right;
 }
 
 .timer-row {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  display: flex;
   gap: 6px;
 }
 
 .timer-item {
   border-radius: 14px;
-  padding: 7px 10px 6px;
+  padding: 6px 10px 6px;
   background: #f9fafb;
   border: 1px solid #e5e7eb;
+  min-width: 0;
 }
 
-.timer-row:nth-child(2) .timer-item:first-child {
+.timer-row:first-child .timer-item {
   background: #eff6ff;
   border-color: #bfdbfe;
 }
@@ -130,13 +137,76 @@ body {
   font-size: 0.7rem;
   color: var(--text-soft);
   margin-bottom: 2px;
+  white-space: nowrap;
 }
 
 .timer-value {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
     "Liberation Mono", "Courier New", monospace;
-  font-weight: 600;
-  font-size: 1rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+/* Buttons */
+
+.btn {
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+  background: #f9fafb;
+  color: #111827;
+  font-size: 0.8rem;
+  padding: 5px 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease,
+    background 0.12s ease,
+    opacity 0.12s ease;
+  box-shadow: 0 3px 8px rgba(15, 23, 42, 0.12);
+}
+
+.btn.primary {
+  background: var(--accent);
+  border-color: #2563eb;
+  color: #eff6ff;
+}
+
+/* Ghost button variant used next to the title. */
+.btn.btn-ghost {
+  background: rgba(255, 255, 255, 0.7);
+  border-color: #d1d5db;
+  color: #111827;
+  box-shadow: none;
+}
+
+.btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.18);
+  opacity: 0.96;
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 5px rgba(15, 23, 42, 0.16);
+  opacity: 0.9;
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+  box-shadow: none;
+}
+
+.btn-sub {
+  display: block;
+  font-size: 0.68rem;
+  opacity: 0.9;
 }
 
 /* =========================================
@@ -156,24 +226,20 @@ main {
 }
 
 .row-top {
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1.3fr);
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.3fr);
 }
 
 .row-bottom {
-  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.1fr);
 }
 
-/* 左列 Player + Online User */
 .col-left {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-/* =========================================
-   Card base
-   ========================================= */
-
+/* Generic card surface. */
 .card {
   border-radius: 20px;
   background: var(--card-bg);
@@ -186,45 +252,10 @@ main {
   overflow: hidden;
 }
 
-.card::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(
-    circle at top left,
-    rgba(148, 163, 184, 0.12),
-    transparent 65%
-  );
-  opacity: 0.7;
-  pointer-events: none;
+.card h2 {
+  font-size: 0.95rem;
+  margin: 0;
 }
-
-.card > * {
-  position: relative;
-  z-index: 1;
-}
-
-.card-player {
-  min-height: 130px;
-}
-
-.card-social {
-  min-height: 170px;
-}
-
-.card-lottery {
-  min-height: 260px;
-}
-
-.card-inventory {
-  min-height: 180px;
-}
-
-.card-log {
-  min-height: 180px;
-}
-
-/* 标题行 */
 
 .section-header {
   display: flex;
@@ -233,109 +264,31 @@ main {
   gap: 8px;
 }
 
-.card h2 {
-  font-size: 0.9rem;
-  margin: 0;
-}
-
-.section-tag {
-  font-size: 0.7rem;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
-  color: #1d4ed8;
-  white-space: nowrap;
-}
-
-.section-tag.soft {
-  background: #f3f4f6;
-  border-color: #e5e7eb;
-  color: var(--text-soft);
-}
-
-/* 描述文字 */
-
-.section-desc {
-  margin: 0;
+.section-desc,
+.card p {
   font-size: 0.78rem;
-  color: var(--text-soft);
+  color: #4b5563;
+  margin: 0;
+}
+
+/* Slightly more vertical space for the Player card. */
+.card-player {
+  min-height: 190px;
 }
 
 /* =========================================
-   Buttons（全部纯色）
-   ========================================= */
-
-.btn {
-  border: none;
-  outline: none;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 0.8rem;
-  line-height: 1.2;
-  border-radius: 999px;
-  padding: 6px 12px;
-  background: #4b5563;
-  color: #f9fafb;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  transition: background 0.12s ease, transform 0.12s ease,
-    box-shadow 0.12s ease, opacity 0.12s ease;
-  white-space: nowrap;
-}
-
-.btn.primary {
-  background: #3b82f6;
-  color: #eff6ff;
-}
-
-.btn.danger {
-  background: #ef4444;
-  color: #fef2f2;
-}
-
-.btn:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.12);
-  opacity: 0.96;
-}
-
-.btn:active:not(:disabled) {
-  transform: translateY(0);
-  box-shadow: 0 2px 5px rgba(15, 23, 42, 0.14);
-  opacity: 0.9;
-}
-
-.btn:disabled {
-  opacity: 0.5;
-  cursor: default;
-  box-shadow: none;
-}
-
-/* 抽卡按钮副标题 */
-.btn-sub {
-  display: block;
-  font-size: 0.68rem;
-  opacity: 0.9;
-}
-
-/* =========================================
-   Player / 玩家区
+   Player + “Collect +1”
    ========================================= */
 
 .player-stats {
   display: flex;
-  align-items: center;
-  gap: 8px;
   flex-wrap: wrap;
-  margin-bottom: 4px;
+  gap: 6px;
+  align-items: center;
 }
 
 .stat-pill {
-  min-width: 0;
-  padding: 6px 9px;
+  padding: 5px 9px;
   border-radius: 999px;
   border: 1px solid #e5e7eb;
   background: #f9fafb;
@@ -359,19 +312,17 @@ main {
   font-weight: 600;
 }
 
-/* Collect +1 按钮 */
-
+/* Time-limited bonus button; visibility is controlled via JS classes. */
 .coin-claim-btn {
   font-size: 0.78rem;
-  padding: 5px 10px;
-  background: #facc15;
-  color: #78350f;
-  border-radius: 999px;
-  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.16);
+  padding: 5px 12px;
+  background: #f97316;
+  border-color: #ea580c;
+  color: #fff7ed;
+  box-shadow: 0 7px 18px rgba(234, 88, 12, 0.35);
   opacity: 0;
   transform: translateY(4px) scale(0.97);
   pointer-events: none;
-  transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
 .coin-claim-visible {
@@ -382,38 +333,47 @@ main {
 
 .coin-claim-clicked {
   transform: translateY(1px) scale(0.97);
-  opacity: 0.8;
+  opacity: 0.85;
 }
 
-/* 小号说明文字 */
-
+/* Fine-print explanatory text. */
 .fine {
   font-size: 0.72rem;
-  color: var(--text-soft);
-  margin: 0;
+  margin: 3px 0 0;
   line-height: 1.5;
+  color: var(--text-soft);
+}
+
+/* Emphasised reminder for the reward rule. */
+.fine-warning {
+  color: var(--danger);
+  font-weight: 600;
 }
 
 /* =========================================
-   Online User
+   Online Users
    ========================================= */
 
 .toggle-inline {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.72rem;
+  gap: 4px;
+  font-size: 0.74rem;
   color: var(--text-soft);
 }
 
-.toggle-inline input[type="checkbox"] {
+.toggle-inline input {
   width: 14px;
   height: 14px;
 }
 
 .online-users-list {
-  margin-top: 4px;
-  max-height: 150px;
+  margin-top: 6px;
+  border-radius: 14px;
+  border: 1px dashed #e5e7eb;
+  padding: 6px 8px;
+  background: #f9fafb;
+  max-height: 160px;
   overflow: auto;
   display: flex;
   flex-direction: column;
@@ -428,36 +388,42 @@ main {
 .online-user {
   padding: 6px 8px;
   border-radius: 12px;
-  background: #f9fafb;
   border: 1px solid #e5e7eb;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .online-user.self {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.35);
+  border-color: #2563eb;
+  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.35);
 }
 
 .online-user-main {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
   gap: 6px;
 }
 
 .online-user-name {
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   font-weight: 600;
 }
 
 .online-user-coins {
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   color: var(--text-soft);
+  text-align: right;
 }
 
 .online-user-cards {
-  margin-top: 2px;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   color: var(--text-soft);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
 }
 
 .online-card-pill {
@@ -468,10 +434,76 @@ main {
   border: 1px solid #d1d5db;
 }
 
-/* =========================================
-   Lottery 区
-   ========================================= */
+/* Lottery */
 
+.card-lottery {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.section-tag {
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1d4ed8;
+  white-space: nowrap;
+}
+
+.lottery-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+/* Flip-card: 3D flip animation with a fixed aspect ratio.
+   Aspect-ratio: https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/aspect-ratio */
+.flip-card {
+  margin-top: 8px;
+  width: 100%;
+  max-width: 260px;
+  aspect-ratio: 3 / 4;
+  perspective: 1200px;
+}
+
+/* Inner wrapper is rotated in 3D to reveal front/back faces. */
+.flip-card-inner {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.6s ease;
+}
+
+.flip-card.flipped .flip-card-inner {
+  transform: rotateY(180deg);
+}
+
+/* Two card faces; backface-visibility hides the “rear” side during rotation. */
+.flip-card-front,
+.flip-card-back {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.32);
+}
+
+.flip-card-front img,
+.flip-card-back img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.flip-card-back {
+  transform: rotateY(180deg);
+}
+
+/* Rarity buttons and gradient badges. */
 .rarity-row {
   margin-top: 4px;
   display: grid;
@@ -489,142 +521,140 @@ main {
   align-items: center;
   justify-content: center;
   gap: 4px;
+  cursor: pointer;
 }
 
-/* 徽章基础样式 */
+.rarity-item span:last-child {
+  font-size: 0.7rem;
+  color: var(--text-soft);
+}
+
 .badge {
   display: inline-flex;
-  min-width: 20px;
-  padding: 2px 5px;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
   font-size: 0.7rem;
-  font-weight: 600;
-  color: #0f172a;
-  justify-content: center;
+  color: #111827;
+  font-weight: 700;
 }
 
-/* 抽卡翻牌区 */
-
-.flip-zone {
-  margin-top: 10px;
-  display: flex;
-  justify-content: center;
+.badge-S {
+  background: linear-gradient(135deg, #f97316, #facc15);
 }
 
-.flip {
-  width: 210px;
-  height: 290px;
-  perspective: 1100px;
+.badge-A {
+  background: linear-gradient(135deg, #0ea5e9, #38bdf8);
 }
 
-.flip-inner {
-  width: 100%;
-  height: 100%;
-  border-radius: 16px;
-  position: relative;
-  transform-style: preserve-3d;
-  transition: transform 0.6s ease;
+.badge-B {
+  background: linear-gradient(135deg, #22c55e, #a3e635);
 }
 
-.flip.flipped .flip-inner {
-  transform: rotateY(180deg);
+.badge-C {
+  background: linear-gradient(135deg, #6390f1, #55e4f7);
 }
 
-.flip-face {
-  position: absolute;
-  inset: 0;
-  border-radius: 16px;
-  overflow: hidden;
-  backface-visibility: hidden;
-  background: #111827;
-  border: 1px solid #111827;
-  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.2);
+.badge-D {
+  background: linear-gradient(135deg, #a855f7, #ec4899);
 }
 
-.flip-face img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.badge-E {
+  background: linear-gradient(135deg, #f97316, #fb7185);
 }
 
-.flip-back {
-  transform: rotateY(180deg);
+.badge-F {
+  background: linear-gradient(135deg, #94a3b8, #cbd5f5);
 }
 
-.actions-lower {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-top: 10px;
+.badge-none {
+  background: linear-gradient(135deg, #111827, #374151);
+  color: #e5e7eb;
 }
 
-/* =========================================
-   Inventory / Activity
-   ========================================= */
+/* Inventory */
 
-.grid.inventory {
-  margin-top: 6px;
+.inventory-grid {
+  margin-top: 4px;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
   gap: 6px;
 }
 
 .inv-item {
-  border-radius: 10px;
-  overflow: hidden;
+  border-radius: 14px;
+  padding: 4px 4px 6px;
   background: #f9fafb;
   border: 1px solid #e5e7eb;
   display: flex;
   flex-direction: column;
   gap: 2px;
   cursor: pointer;
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease,
+    border-color 0.12s ease;
 }
 
 .inv-item img {
   width: 100%;
-  aspect-ratio: 3 / 4;
+  border-radius: 10px;
   object-fit: cover;
   display: block;
 }
 
 .inv-item .label {
-  padding: 2px 6px 3px;
-  font-size: 0.72rem;
-  color: var(--text-soft);
+  font-size: 0.74rem;
+  color: #374151;
+  text-align: center;
+  margin-top: 2px;
 }
 
-/* 活动日志 */
+.inv-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.25);
+  border-color: #93c5fd;
+}
 
-.log {
-  margin-top: 6px;
-  font-size: 0.75rem;
-  color: var(--text-soft);
-  max-height: 180px;
+/* =========================================
+   Activity log
+   ========================================= */
+
+.log-box {
+  margin-top: 4px;
+  border-radius: 14px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  padding: 6px 8px;
+  max-height: 160px;
   overflow: auto;
   display: flex;
-  flex-direction: column-reverse;
-  gap: 4px;
+  flex-direction: column;
+  gap: 6px;
 }
 
-/* =========================================
-   Footer
-   ========================================= */
+.log-box > div {
+  font-size: 0.74rem;
+  color: #111827;
+}
+
+/* Footer */
 
 .app-footer {
-  margin-top: 10px;
-  padding-top: 4px;
-  border-top: 1px solid #e5e7eb;
+  margin-top: 4px;
   font-size: 0.72rem;
   color: var(--text-soft);
   display: flex;
-  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
-/* =========================================
-   Auth overlay
-   ========================================= */
+/*  Auth overlay */
 
+/* Semi-transparent overlay with blur so the app remains visible but de-emphasised.
+  Backdrop-filter: https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/backdrop-filter */
 .auth-overlay {
   position: fixed;
   inset: 0;
@@ -644,6 +674,9 @@ main {
   border: 1px solid #e5e7eb;
   box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
   padding: 16px 18px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .auth-card h1 {
@@ -652,37 +685,35 @@ main {
 }
 
 .auth-subtitle {
-  margin: 0 0 10px 0;
-  font-size: 0.75rem;
+  margin: 0 0 6px 0;
+  font-size: 0.8rem;
   color: var(--text-soft);
-  line-height: 1.4;
 }
 
 .auth-input-row {
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  margin-bottom: 8px;
+  gap: 2px;
+  margin-top: 4px;
+  font-size: 0.8rem;
 }
 
 .auth-input-row label {
-  font-size: 0.74rem;
+  font-size: 0.78rem;
   color: var(--text-soft);
 }
 
 .auth-input-row input {
-  border-radius: 10px;
+  border-radius: 999px;
   border: 1px solid #d1d5db;
-  background: #f9fafb;
-  color: var(--text-main);
-  padding: 6px 8px;
-  font-size: 0.82rem;
+  padding: 5px 10px;
+  font-size: 0.8rem;
 }
 
 .auth-input-row input:focus {
   outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.5);
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.7);
 }
 
 .auth-actions {
@@ -700,9 +731,7 @@ main {
   font-size: 0.78rem;
 }
 
-/* =========================================
-   注册成功规则弹窗（Sign up Guide）
-   ========================================= */
+/* Sign-up guide modal */
 
 .signup-guide-overlay {
   position: fixed;
@@ -720,7 +749,7 @@ main {
 .signup-guide-backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(15, 23, 42, 0.15);
+  background: rgba(15, 23, 42, 0.18);
   backdrop-filter: blur(4px);
 }
 
@@ -738,7 +767,7 @@ main {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  overflow-y: auto; /* 关键：教程内容可上下滚动 */
+  overflow-y: auto;
 }
 
 .signup-guide-title {
@@ -750,7 +779,7 @@ main {
 .signup-guide-intro {
   margin: 0 0 6px 0;
   font-size: 0.8rem;
-  color: #6b7280;
+  color: var(--text-soft);
 }
 
 .signup-guide-columns {
@@ -769,15 +798,12 @@ main {
 
 .signup-guide-block ol {
   margin: 0;
-  padding-left: 0.8rem;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  padding-left: 18px;
   color: #374151;
 }
 
-.signup-guide-block li {
-  line-height: 1.45;
+.signup-guide-block li + li {
+  margin-top: 4px;
 }
 
 .signup-guide-actions {
@@ -811,7 +837,7 @@ main {
 }
 
 /* =========================================
-   Image Viewer modal (大图 + 评论输入)
+   Image viewer (full card + review)
    ========================================= */
 
 .image-viewer {
@@ -837,9 +863,10 @@ main {
 .image-viewer-content {
   position: relative;
   z-index: 1;
-  max-width: 90vw;
-  max-height: 90vh;
-  padding: 14px 14px 12px;
+  width: 90vw;
+  max-width: 720px;
+  max-height: 88vh;
+  padding: 16px 16px 14px;
   border-radius: 18px;
   background: #ffffff;
   border: 1px solid #e5e7eb;
@@ -874,18 +901,21 @@ main {
   align-items: center;
   justify-content: center;
   background: #f3f4f6;
-  color: #4b5563;
-  transition: background 0.12s ease, transform 0.12s ease;
 }
 
-.image-viewer-close:hover {
-  transform: translateY(-1px);
-  background: #e5e7eb;
+/* “Save card” button pinned to the top-left corner. */
+.image-viewer-save {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  font-size: 0.76rem;
+  padding: 4px 10px;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.25);
 }
 
 .image-viewer-label {
-  font-size: 0.78rem;
-  color: #6b7280;
+  font-size: 0.8rem;
+  color: #374151;
   text-align: center;
 }
 
@@ -903,22 +933,11 @@ main {
   padding: 4px 8px;
   border-radius: 999px;
   border: 1px solid #d1d5db;
-  background: #f9fafb;
-  color: #111827;
   font-size: 0.78rem;
 }
 
-.image-viewer-review input::placeholder {
-  color: #9ca3af;
-}
-
-.image-viewer-review-send {
-  padding: 4px 10px;
-  font-size: 0.75rem;
-}
-
 /* =========================================
-   Review list modal (按等级查看评论)
+   Rarity review modal
    ========================================= */
 
 .review-modal {
@@ -958,10 +977,8 @@ main {
 }
 
 .review-modal-title {
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: #111827;
-  margin: 0 0 4px 0;
+  margin: 0;
+  font-size: 0.9rem;
 }
 
 .review-modal-close {
@@ -970,134 +987,84 @@ main {
   right: 6px;
   border: none;
   cursor: pointer;
-  width: 26px;
-  height: 26px;
+  width: 28px;
+  height: 28px;
   border-radius: 999px;
-  font-size: 18px;
+  font-size: 20px;
   line-height: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   background: #f3f4f6;
-  color: #4b5563;
-  transition: background 0.12s ease, transform 0.12s ease;
-}
-
-.review-modal-close:hover {
-  transform: translateY(-1px);
-  background: #e5e7eb;
 }
 
 .review-modal-body {
-  flex: 1;
-  overflow-y: auto;
-  padding-right: 2px;
+  margin-top: 4px;
+  border-radius: 14px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  padding: 8px 9px;
+  max-height: 62vh;
+  overflow: auto;
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
 .review-item {
-  padding: 6px 8px;
+  padding: 6px 7px;
   border-radius: 10px;
-  background: #f9fafb;
+  background: #ffffff;
   border: 1px solid #e5e7eb;
 }
 
 .review-header {
   font-size: 0.78rem;
-  color: #6b7280;
+  font-weight: 600;
   margin-bottom: 2px;
 }
 
 .review-text {
-  font-size: 0.8rem;
-  color: #111827;
+  font-size: 0.76rem;
+  color: #374151;
 }
 
 .review-empty {
-  font-size: 0.8rem;
-  color: #9ca3af;
+  font-size: 0.78rem;
+  color: var(--text-soft);
 }
 
 /* =========================================
-   Toast 提示（发送成功等）
+   Toast
    ========================================= */
 
 .toast {
   position: fixed;
-  left: 50%;
   bottom: 18px;
-  transform: translate(-50%, 8px);
-  padding: 8px 14px;
+  left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  padding: 6px 12px;
   border-radius: 999px;
-  background: rgba(15, 23, 42, 0.95);
+  background: rgba(15, 23, 42, 0.92);
   color: #f9fafb;
-  font-size: 0.8rem;
-  max-width: 92vw;
-  text-align: center;
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.45);
+  font-size: 0.78rem;
+  box-shadow: 0 14px 40px rgba(15, 23, 42, 0.7);
   opacity: 0;
   pointer-events: none;
-  z-index: 3500;
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease;
+  z-index: 4000;
 }
 
 .toast.show {
   opacity: 1;
-  pointer-events: auto;
-  transform: translate(-50%, 0);
+  transform: translateX(-50%) translateY(0);
 }
 
-@media (max-width: 480px) {
-  .toast {
-    bottom: 12px;
-    font-size: 0.78rem;
-    padding: 7px 12px;
-  }
-}
+/* Responsive */
 
-/* =========================================
-   Rarity badge gradients / 稀有度徽章渐变
-   ========================================= */
-
-.badge-S {
-  background: linear-gradient(135deg, #f97316, #facc15);
-}
-
-.badge-A {
-  background: linear-gradient(135deg, #0ea5e9, #38bdf8);
-}
-
-.badge-B {
-  background: linear-gradient(135deg, #22c55e, #a3e635);
-}
-
-.badge-C {
-  background: linear-gradient(135deg, #6390f1, #55e4f7);
-}
-
-.badge-D {
-  background: linear-gradient(135deg, #485eec, #1630f9);
-}
-
-.badge-E {
-  background: linear-gradient(135deg, #6b7280, #9ca3af);
-}
-
-.badge-F {
-  background: linear-gradient(135deg, #4b5563, #6b7280);
-}
-
-.badge-none {
-  background: linear-gradient(135deg, #111827, #374151);
-  color: #e5e7eb;
-}
-
-/* =========================================
-   Responsive
-   ========================================= */
-
+/* Single breakpoint to collapse into a one-column layout on narrow viewports. */
 @media (max-width: 900px) {
   .page {
     padding: 12px;
@@ -1105,18 +1072,17 @@ main {
   }
 
   .app {
-    padding: 14px 12px 12px;
-    border-radius: 18px;
-    min-height: auto;
+    padding: 14px 12px 16px;
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.55);
   }
 
   .app-header {
     flex-direction: column;
-    gap: 8px;
   }
 
   .timer-panel {
-    width: 100%;
+    align-items: flex-start;
+    text-align: left;
   }
 
   .row-top,
@@ -1124,134 +1090,12 @@ main {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .grid.inventory {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .flip {
-    width: 190px;
-    height: 260px;
+  .signup-guide-card {
+    max-width: 100%;
+    width: calc(100vw - 24px);
   }
 
   .signup-guide-columns {
     grid-template-columns: minmax(0, 1fr);
-  }
-
-  .review-modal-content {
-    width: 90vw;
-  }
-}
-
-@media (max-width: 640px) {
-  .page {
-    padding: 10px;
-  }
-
-  .app {
-    padding: 12px 10px 10px;
-    border-radius: 16px;
-  }
-
-  .brand {
-    font-size: 1.1rem;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-  }
-
-  .brand-subline,
-  .subtitle {
-    font-size: 0.78rem;
-  }
-
-  .timer-row {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .timer-item {
-    padding: 6px 8px;
-  }
-
-  /* 登录 & 教程窗口在移动端贴顶部显示 */
-  .auth-overlay,
-  .signup-guide-overlay {
-    align-items: flex-start;
-    justify-content: center;
-    padding-top: 32px;
-    padding-bottom: 16px;
-  }
-
-  .grid.inventory {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .flip {
-    width: 170px;
-    height: 240px;
-  }
-
-  .card {
-    padding: 8px 9px 8px;
-    border-radius: 16px;
-  }
-
-
-  .section-desc {
-    font-size: 0.75rem;
-  }
-
-  .rarity-row {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-
-  .review-modal-content {
-    width: 94vw;
-    max-height: 88vh;
-    padding: 14px 12px 12px;
-  }
-
-  .image-viewer-content {
-    width: 94vw;
-    max-height: 88vh;
-  }
-
-  .image-viewer-content img {
-    max-width: 86vw;
-    max-height: 55vh;
-  }
-
-  .signup-guide-card {
-    max-width: 94vw;
-    padding: 14px 12px 12px;
-  }
-}
-
-@media (max-width: 480px) {
-  .app-footer {
-    flex-direction: column;
-    gap: 4px;
-    align-items: flex-start;
-  }
-
-  .player-stats {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .actions-lower {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .actions-lower .btn {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .online-users-list {
-    max-height: 200px;
-  }
-
-  .log {
-    max-height: 200px;
   }
 }
