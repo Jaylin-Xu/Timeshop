@@ -1,26 +1,38 @@
-/* ===========================================================
-   Time Shop 前端逻辑
-   - 账号登录 / 注册
-   - 计时 + Collect +1 硬币
-   - 抽卡翻转动画
-   - 在线用户显示
-   - 注册成功后规则弹窗（中英双列）
-   - Inventory 点击卡牌 → 大图 + 评论输入
-   - Lottery 稀有度按钮 → 查看该等级的评论
-   - 评论发送成功 / 失败 Toast 提示
-   =========================================================== */
+/*
+  Time Shop front-end logic
+  Features:
+  - Sign up / log in and load per-account state
+  - Session timer + “Collect +1” coin every 20 seconds (3s claim window)
+  - Card lottery with flip animation
+  - Online users presence via Socket.io
+  - Rule modal (after sign up + “View rules” button in header)
+  - Inventory: click card → full view + review + save image
+  - Rarity buttons: fetch and display reviews by level
+*/
 
+/* Game constants */
+
+// Base coins granted to every account when they begin.
 const BASE_COINS = 2;
-const COIN_INTERVAL = 120;
+
+// Seconds of active time between two coin events.
+const COIN_INTERVAL = 20;
+
+// Milliseconds the “Collect +1” button stays clickable.
 const COIN_LIFETIME = 3000;
+
+// Duration of a single flip animation (ms).
 const FLIP_DURATION = 600;
+
+// How long the front of the card stays visible (ms).
 const CARD_HOLD_DURATION = 4000;
 
-// 账号 & 状态
+// Identity for the currently logged-in account.
 let currentUser = null;
 let currentPassword = null;
 let loggedIn = false;
 
+// In-memory game state for this tab; the server is treated as source of truth.
 let state = {
   totalSeconds: 0,
   coinsSpent: 0,
@@ -29,11 +41,8 @@ let state = {
   coinEventsTriggered: 0
 };
 
-/* =============================
-   DOM 引用
-   ============================= */
 
-// 登录
+// Auth overlay
 const authOverlay = document.getElementById("authOverlay");
 const authUsername = document.getElementById("authUsername");
 const authPassword = document.getElementById("authPassword");
@@ -41,7 +50,7 @@ const signupBtn = document.getElementById("signupBtn");
 const loginBtn = document.getElementById("loginBtn");
 const authMessageEl = document.getElementById("authMessage");
 
-// 注册成功规则弹窗（唯一教程窗口）
+// Sign-up guide modal
 const signupGuideOverlay = document.getElementById("signupGuideOverlay");
 const signupGuideClose = document.getElementById("signupGuideClose");
 const signupGuideGotIt = document.getElementById("signupGuideGotIt");
@@ -49,31 +58,32 @@ const signupGuideBackdrop = signupGuideOverlay
   ? signupGuideOverlay.querySelector(".signup-guide-backdrop")
   : null;
 
-// 顶部时间 / 用户
-const usernameLabel = document.getElementById("usernameLabel");
-const usernameLabelSide = document.getElementById("usernameLabel-side");
-const coinLabel = document.getElementById("coinLabel");
+// Header time + rules button
 const sessionTimerEl = document.getElementById("sessionTimer");
 const globalTimerDisplay = document.getElementById("timerDisplay");
+const openGuideBtn = document.getElementById("openGuideBtn");
 
-// 抽卡
+// Player section
+const usernameLabelSide = document.getElementById("usernameLabel-side");
+const coinLabel = document.getElementById("coinLabel");
+const coinSpawnBtn = document.getElementById("coinSpawnBtn");
+
+// Online users
+const onlineUsersList = document.getElementById("onlineUsersList");
+const hideCoinsToggle = document.getElementById("toggleHideCoins");
+
+// Lottery
 const drawBtn = document.getElementById("drawBtn");
-const resetBtn = document.getElementById("resetBtn");
 const flipCard = document.getElementById("flipCard");
 const cardFront = document.getElementById("cardFront");
 const cardBackImg = document.getElementById("cardBack");
 const rarityRow = document.querySelector(".rarity-row");
 
-// Inventory / Log
+// Inventory + Activity log
 const invGrid = document.getElementById("inventory");
 const logBox = document.getElementById("log");
 
-// Collect +1 & 在线用户
-const coinSpawnBtn = document.getElementById("coinSpawnBtn");
-const onlineUsersList = document.getElementById("onlineUsersList");
-const hideCoinsToggle = document.getElementById("toggleHideCoins");
-
-// 图片查看 + 评论
+// Full image viewer
 const imageViewer = document.getElementById("imageViewer");
 const imageViewerImg = document.getElementById("imageViewerImg");
 const imageViewerLabel = document.getElementById("imageViewerLabel");
@@ -81,14 +91,11 @@ const imageViewerClose = document.getElementById("imageViewerClose");
 const imageViewerBackdrop = imageViewer
   ? imageViewer.querySelector(".image-viewer-backdrop")
   : null;
-const imageViewerReviewInput = document.getElementById(
-  "imageViewerReviewInput"
-);
-const imageViewerReviewSend = document.getElementById(
-  "imageViewerReviewSend"
-);
+const imageViewerReviewInput = document.getElementById("imageViewerReviewInput");
+const imageViewerReviewSend = document.getElementById("imageViewerReviewSend");
+const imageViewerSaveBtn = document.getElementById("imageViewerSaveBtn");
 
-// 按等级查看评论模态
+// Rarity review modal
 const reviewModal = document.getElementById("reviewModal");
 const reviewModalTitle = document.getElementById("reviewModalTitle");
 const reviewModalBody = document.getElementById("reviewModalBody");
@@ -97,10 +104,9 @@ const reviewModalBackdrop = reviewModal
   ? reviewModal.querySelector(".review-modal-backdrop")
   : null;
 
-/* =============================
-   活跃判定（决定计时是否累加）
-   ============================= */
+/* Page activity (whether timer should tick) */
 
+// We only count time when the page feels “actively watched” by the user.
 let hasFocus = document.hasFocus();
 let pointerInside = true;
 const isTouchDevice =
@@ -109,55 +115,37 @@ const isTouchDevice =
 window.addEventListener("focus", () => {
   hasFocus = true;
 });
+
 window.addEventListener("blur", () => {
   hasFocus = false;
 });
+
 document.addEventListener("visibilitychange", () => {
   hasFocus = !document.hidden;
 });
+
 document.addEventListener("mouseenter", () => {
   pointerInside = true;
 });
+
 document.addEventListener("mouseleave", () => {
   pointerInside = false;
 });
 
+// Decide if we should increment the per-account timer on this tick.
 function isActiveForTimer() {
   if (!loggedIn || document.hidden || !hasFocus) return false;
-  if (isTouchDevice) return true;
-  return pointerInside;
+  // On touch devices, we cannot easily track pointer enter/leave, so we
+  // rely on focus/visibility only.
+  return isTouchDevice ? true : pointerInside;
 }
 
-/* =============================
-   Collect +1 & 在线用户开关
-   ============================= */
-
-let coinButtonVisible = false;
-let coinButtonTimeoutId = null;
-let hideCoinsInSocial = false;
-
-if (hideCoinsToggle) {
-  hideCoinsToggle.addEventListener("change", () => {
-    hideCoinsInSocial = hideCoinsToggle.checked;
-    sendPresence(true);
-  });
-}
-
-/* =============================
-   Socket.io
-   ============================= */
-
-let socket = null;
-let globalSeconds = 0;
-
-/* =============================
-   工具函数
-   ============================= */
-
+// Compute currently spendable coins derived from base + claimed − spent.
 function getAvailableCoins() {
   return BASE_COINS + (state.coinsClaimed || 0) - (state.coinsSpent || 0);
 }
 
+// Format seconds as HH:MM:SS.
 function fmtHMS(s) {
   s = Math.floor(s);
   const hh = String(Math.floor(s / 3600)).padStart(2, "0");
@@ -166,20 +154,23 @@ function fmtHMS(s) {
   return `${hh}:${mm}:${ss}`;
 }
 
-function log(msg) {
+// Append a message to the Activity box, with a local time prefix.
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toLocaleTimeString
+function log(message) {
   if (!logBox) return;
   const el = document.createElement("div");
-  el.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+  el.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
   logBox.prepend(el);
 }
 
+// Set feedback text in the auth overlay; colorised for success / error.
 function setAuthMessage(msg, isError = true) {
   if (!authMessageEl) return;
   authMessageEl.textContent = msg || "";
-  authMessageEl.style.color = isError ? "#ef4444" : "#16a34a";
+  authMessageEl.style.color = isError ? "#b91c1c" : "#15803d";
 }
 
-/* ========== Toast 提示 ========== */
+/* Toast: small temporary message at the bottom of the screen */
 
 let toastTimeoutId = null;
 
@@ -197,15 +188,15 @@ function showToast(message) {
   el.textContent = message;
   el.classList.add("show");
 
-  if (toastTimeoutId) {
-    clearTimeout(toastTimeoutId);
-  }
+  // MDN (setTimeout / clearTimeout):
+  // https://developer.mozilla.org/en-US/docs/Web/API/setTimeout
+  if (toastTimeoutId) clearTimeout(toastTimeoutId);
   toastTimeoutId = setTimeout(() => {
     el.classList.remove("show");
   }, 2000);
 }
 
-/* ========== 注册成功规则弹窗逻辑 ========== */
+/* Rule modal (sign up + header button) */
 
 function showSignupGuide() {
   if (!signupGuideOverlay) return;
@@ -228,32 +219,41 @@ if (signupGuideGotIt) {
 if (signupGuideBackdrop) {
   signupGuideBackdrop.addEventListener("click", hideSignupGuide);
 }
+if (openGuideBtn) {
+  openGuideBtn.addEventListener("click", () => {
+    showSignupGuide();
+  });
+}
 
-/* =============================
-   HTTP 请求封装
-   ============================= */
 
+// Minimal JSON POST helper using the Fetch API.
+// https://developer.mozilla.org/en-US/docs/Web/API/fetch
 async function postJSON(url, body) {
   const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body)
   });
+
   const data = await res.json().catch(() => ({}));
+
   if (!res.ok) {
     throw new Error(data.error || `Request failed: ${res.status}`);
   }
   return data;
 }
 
-async function signup(username, password) {
+function signup(username, password) {
   return postJSON("/auth/signup", { username, password });
 }
 
-async function login(username, password) {
+function login(username, password) {
   return postJSON("/auth/login", { username, password });
 }
 
+// Push the latest local state to the server so that:
+// - global total time can be updated,
+// - account state is durable across devices.
 async function syncState() {
   if (!loggedIn || !currentUser || !currentPassword) return;
   try {
@@ -267,10 +267,8 @@ async function syncState() {
   }
 }
 
-/* =============================
-   在线用户渲染
-   ============================= */
-
+/* Online user list rendering */
+// Render a list of online accounts into the “Online User” card.
 function renderOnlineUsers(users) {
   if (!onlineUsersList) return;
   onlineUsersList.innerHTML = "";
@@ -300,7 +298,7 @@ function renderOnlineUsers(users) {
     if (u.hideCoins) {
       coinsEl.textContent =
         u.username === currentUser
-          ? "You can still see yours above / 你仍能在 Player 区看到自己的硬币"
+          ? "See coins in Player / 硬币在 Player 区查看"
           : "Coins: hidden / 硬币已隐藏";
     } else {
       coinsEl.textContent = `Coins: ${u.coins ?? 0}`;
@@ -321,13 +319,10 @@ function renderOnlineUsers(users) {
       cardsRow.appendChild(none);
     } else {
       const label = document.createElement("span");
-      label.style.fontSize = "0.75rem";
-      label.style.color = "#6b7280";
       label.textContent = "Recent cards / 最近卡牌:";
       cardsRow.appendChild(label);
 
       const levels = document.createElement("span");
-      levels.style.fontSize = "0.75rem";
       levels.style.marginLeft = "4px";
       levels.textContent = cards.join(", ");
       cardsRow.appendChild(levels);
@@ -338,16 +333,15 @@ function renderOnlineUsers(users) {
   });
 }
 
-/* =============================
-   登录 / 注册逻辑
-   ============================= */
-
+/* Sign up / login flow */
 async function handleAuth(action) {
   const username = authUsername.value.trim();
   const password = authPassword.value.trim();
 
   if (!username || !password) {
-    setAuthMessage("Username and password are required. / 请输入用户名与密码。");
+    setAuthMessage(
+      "Username and password are required. / 请输入用户名和密码。"
+    );
     return;
   }
 
@@ -378,13 +372,15 @@ async function handleAuth(action) {
       };
     loggedIn = true;
 
-    authOverlay.style.display = "none";
+    if (authOverlay) authOverlay.style.display = "none";
+
     renderInventory();
     renderStats();
     log(
-      `Welcome, ${currentUser}! / 欢迎，${currentUser}！你的账号数据已载入。`
+      `Welcome, ${currentUser}! / 欢迎，${currentUser}！账号数据已载入。`
     );
     sendPresence(true);
+
     setAuthMessage(
       action === "signup"
         ? "Sign up successful. You are now logged in. / 注册成功，已自动登录。"
@@ -392,7 +388,6 @@ async function handleAuth(action) {
       false
     );
 
-    // 注册成功：弹出规则教程窗口；登录则直接进入游戏
     if (action === "signup") {
       showSignupGuide();
     }
@@ -410,13 +405,12 @@ async function handleAuth(action) {
 signupBtn.addEventListener("click", () => handleAuth("signup"));
 loginBtn.addEventListener("click", () => handleAuth("login"));
 
-/* =============================
-   Inventory 渲染（卡牌可点击打开大图）
-   ============================= */
+/* Inventory rendering + full image viewer */
 
 function renderInventory() {
   if (!invGrid) return;
   invGrid.innerHTML = "";
+
   if (!state.cards || !state.cards.length) {
     const d = document.createElement("div");
     d.textContent = "— No cards yet / 暂无卡牌 —";
@@ -450,27 +444,35 @@ function renderInventory() {
   });
 }
 
-/* =============================
-   Inventory 点击 → 打开图片查看 + 评论
-   ============================= */
-
 let currentPreviewLevel = null;
+let currentPreviewSrc = "";
 
+// Open the full-size image viewer for a selected card.
 function openImageViewer(src, label, level) {
   if (!imageViewer || !imageViewerImg) return;
+
   currentPreviewLevel = level || null;
+  currentPreviewSrc = src || "";
+
   imageViewerImg.src = src;
-  if (imageViewerLabel) imageViewerLabel.textContent = label || "";
-  if (imageViewerReviewInput) imageViewerReviewInput.value = "";
+  if (imageViewerLabel) {
+    imageViewerLabel.textContent = label || "";
+  }
+  if (imageViewerReviewInput) {
+    imageViewerReviewInput.value = "";
+  }
+
   imageViewer.classList.add("show");
   document.body.style.overflow = "hidden";
 }
 
+// Close the image viewer and reset selection.
 function closeImageViewer() {
   if (!imageViewer) return;
   imageViewer.classList.remove("show");
   document.body.style.overflow = "";
   currentPreviewLevel = null;
+  currentPreviewSrc = "";
 }
 
 if (imageViewerClose) {
@@ -480,6 +482,8 @@ if (imageViewerBackdrop) {
   imageViewerBackdrop.addEventListener("click", closeImageViewer);
 }
 
+// Delegate clicks from the inventory grid to the appropriate card.
+// https://developer.mozilla.org/en-US/docs/Web/API/Element/closest
 if (invGrid) {
   invGrid.addEventListener("click", (event) => {
     const target = event.target;
@@ -487,20 +491,16 @@ if (invGrid) {
     const item = target.closest(".inv-item");
     if (!item) return;
 
-    const imgEl = item.querySelector("img");
-    const labelEl = item.querySelector(".label");
-    const src = item.dataset.src || (imgEl ? imgEl.src : "");
-    const label = item.dataset.label || (labelEl ? labelEl.textContent : "");
+    const src = item.dataset.src;
+    const label = item.dataset.label;
     const level = item.dataset.level || null;
-
     if (!src) return;
+
     openImageViewer(src, label, level);
   });
 }
 
-/* =============================
-   在大图下面发送评论
-   ============================= */
+/* Card review submission for the card currently in the viewer */
 
 if (imageViewerReviewSend) {
   imageViewerReviewSend.addEventListener("click", async () => {
@@ -508,7 +508,6 @@ if (imageViewerReviewSend) {
       alert("Please log in first. / 请先登录后再发表评论。");
       return;
     }
-
     if (!currentPreviewLevel) {
       alert("No card selected. / 未选中卡牌。");
       return;
@@ -536,23 +535,36 @@ if (imageViewerReviewSend) {
   });
 }
 
-/* =============================
-   按等级查看评论 Modal
-   ============================= */
+/* Save the current card image as a file via a synthetic <a download> click.
+   https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-download */
+if (imageViewerSaveBtn) {
+  imageViewerSaveBtn.addEventListener("click", () => {
+    if (!currentPreviewSrc) {
+      alert("No image to save. / 当前没有可保存的图片。");
+      return;
+    }
+    const link = document.createElement("a");
+    link.href = currentPreviewSrc;
+    const parts = currentPreviewSrc.split("/");
+    const filename = parts[parts.length - 1] || "card.jpg";
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  });
+}
 
+/* Rarity review modal */
 function openReviewModal(level, reviews) {
   if (!reviewModal || !reviewModalBody || !reviewModalTitle) return;
 
-  let titleText;
-  if (level === "NONE") {
-    titleText = "Reviews for no-prize draws / 未中奖评价";
-  } else {
-    titleText = `Reviews for ${level} cards / ${level} 卡牌评价`;
-  }
+  const title =
+    level === "NONE"
+      ? "Reviews for no-prize draws / 未中奖评价"
+      : `Reviews for ${level} cards / ${level} 卡牌评价`;
+  reviewModalTitle.textContent = title;
 
-  reviewModalTitle.textContent = titleText;
   reviewModalBody.innerHTML = "";
-
   if (!reviews || !reviews.length) {
     const empty = document.createElement("div");
     empty.className = "review-empty";
@@ -594,8 +606,8 @@ if (reviewModalBackdrop) {
   reviewModalBackdrop.addEventListener("click", closeReviewModal);
 }
 
-/* 点击 Lottery 上的稀有度按钮加载该等级评论 */
-
+// Handle click on rarity badges to load corresponding reviews from the server.
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent
 if (rarityRow) {
   rarityRow.addEventListener("click", async (event) => {
     const target = event.target;
@@ -620,28 +632,39 @@ if (rarityRow) {
   });
 }
 
-/* =============================
-   Stats 渲染
-   ============================= */
-
+/* Stats panel */
 function renderStats() {
   const coins = getAvailableCoins();
   const lifetime = state.totalSeconds || 0;
 
-  if (usernameLabel) usernameLabel.textContent = currentUser || "—";
-  if (usernameLabelSide) usernameLabelSide.textContent = currentUser || "—";
-  if (coinLabel) coinLabel.textContent = coins;
-  if (sessionTimerEl) sessionTimerEl.textContent = fmtHMS(lifetime);
+  if (usernameLabelSide) {
+    usernameLabelSide.textContent = currentUser || "—";
+  }
+  if (coinLabel) {
+    coinLabel.textContent = coins;
+  }
+  if (sessionTimerEl) {
+    sessionTimerEl.textContent = fmtHMS(lifetime);
+  }
 
   if (drawBtn) {
     drawBtn.disabled = !(loggedIn && coins >= 3);
   }
 }
 
-/* =============================
-   Collect +1 按钮逻辑
-   ============================= */
+/* Collect +1 coin button */
+let coinButtonVisible = false;
+let coinButtonTimeoutId = null;
+let hideCoinsInSocial = false;
 
+if (hideCoinsToggle) {
+  hideCoinsToggle.addEventListener("change", () => {
+    hideCoinsInSocial = hideCoinsToggle.checked;
+    sendPresence(true);
+  });
+}
+
+// Show the “Collect +1” button and set up its 3-second lifetime.
 function showCoinButton() {
   if (!coinSpawnBtn || coinButtonVisible || !loggedIn) return;
 
@@ -664,6 +687,7 @@ function showCoinButton() {
   }, COIN_LIFETIME);
 }
 
+// Hide the coin button and clear its timeout if needed.
 function hideCoinButton() {
   if (!coinSpawnBtn) return;
   coinButtonVisible = false;
@@ -677,6 +701,7 @@ function hideCoinButton() {
   }
 }
 
+// When the player clicks “Collect +1”, grant one coin and sync.
 if (coinSpawnBtn) {
   coinSpawnBtn.addEventListener("click", () => {
     if (!coinButtonVisible || !loggedIn) return;
@@ -697,9 +722,13 @@ if (coinSpawnBtn) {
   });
 }
 
+// Check whether totalSeconds has crossed any new 20s threshold,
+// and if so, trigger one coin event. This timing logic was checked with
+// help from GPT-5.1 so that edge cases across multiple sessions are handled.
 function maybeSpawnCoinFromTime() {
   const total = state.totalSeconds || 0;
   const thresholdIndex = Math.floor(total / COIN_INTERVAL);
+
   if (
     thresholdIndex > (state.coinEventsTriggered || 0) &&
     !coinButtonVisible
@@ -711,13 +740,16 @@ function maybeSpawnCoinFromTime() {
   }
 }
 
-/* =============================
-   presence 上报
-   ============================= */
+/* Socket.io presence & global time */
 
+let socket = null;
+let globalSeconds = 0;
 let presenceTicks = 0;
 let secondsSinceLastSync = 0;
 
+// Emit a presence update to the server with lightweight state.
+// Nullish coalescing (??) is used for safe defaults.
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Nullish_coalescing_operator
 function sendPresence(force = false) {
   if (!socket || !loggedIn || !currentUser) return;
   if (!force && presenceTicks < 5) return;
@@ -732,10 +764,11 @@ function sendPresence(force = false) {
   });
 }
 
-/* =============================
-   主计时循环
-   ============================= */
+/* Main timer loop (per-account time) */
 
+// Main “tick” loop, scheduled every 1000ms via setTimeout rather than setInterval
+// for more explicit control. The structure of this loop was drafted with support
+// from GPT-5.1 to keep sync and presence intervals readable.
 function tick() {
   if (isActiveForTimer()) {
     state.totalSeconds = (state.totalSeconds || 0) + 1;
@@ -754,24 +787,16 @@ function tick() {
   maybeSpawnCoinFromTime();
   setTimeout(tick, 1000);
 }
+
 tick();
 
-/* =============================
-   抽卡逻辑（更新后的概率）
-   ============================= */
+/* Lottery logic */
 
+// Weighted random selection for card outcomes.
+// The thresholds were tuned with GPT-5.1's help to feel roughly “gacha-like”
+// while still remaining easy to reason about in code.
 function drawResult() {
   const r = Math.random();
-
-  // 新概率：
-  // NONE: 20%
-  // F   : 25%
-  // E   : 25%
-  // D   : 12.5%
-  // C   : 10%
-  // B   : 5%
-  // A   : 2%
-  // S   : 0.5%
   if (r < 0.2) return "NONE";
   else if (r < 0.45) return "F";
   else if (r < 0.7) return "E";
@@ -782,10 +807,14 @@ function drawResult() {
   return "S";
 }
 
+// Drive the flip animation from card back → result → back again.
 function flipToCard(result) {
+  if (!flipCard || !cardFront || !cardBackImg) return;
+
   flipCard.classList.remove("flipped");
   cardFront.src = "./assets/cards/back.jpg";
 
+  // Small delay ensures the “reset to back” state is applied before we flip.
   setTimeout(() => {
     const imgPath =
       result === "NONE"
@@ -803,79 +832,40 @@ function flipToCard(result) {
   }, 20);
 }
 
-drawBtn.addEventListener("click", () => {
-  if (!loggedIn) {
-    alert("Please log in first. / 请先登录账号。");
-    return;
-  }
+if (drawBtn) {
+  drawBtn.addEventListener("click", () => {
+    if (!loggedIn) {
+      alert("Please log in first. / 请先登录账号。");
+      return;
+    }
 
-  const coins = getAvailableCoins();
-  if (coins < 3) {
-    alert("Not enough coins! / 当前硬币不足 3 枚。");
-    return;
-  }
+    const coins = getAvailableCoins();
+    if (coins < 3) {
+      alert("Not enough coins! / 当前硬币不足 3 枚。");
+      return;
+    }
 
-  state.coinsSpent = (state.coinsSpent || 0) + 3;
-  if (!state.cards) state.cards = [];
+    state.coinsSpent = (state.coinsSpent || 0) + 3;
+    if (!state.cards) state.cards = [];
 
-  const result = drawResult();
-  state.cards.push(result);
+    const result = drawResult();
+    state.cards.push(result);
 
-  renderInventory();
-  renderStats();
-  flipToCard(result);
-  syncState();
-  sendPresence(true);
+    renderInventory();
+    renderStats();
+    flipToCard(result);
+    syncState();
+    sendPresence(true);
 
-  log(
-    `You drew: ${
-      result === "NONE" ? "No Prize" : "Card " + result
-    } / 抽到结果：${result === "NONE" ? "未中奖" : "卡牌 " + result}。`
-  );
-});
+    log(
+      `You drew: ${
+        result === "NONE" ? "No Prize" : "Card " + result
+      } / 抽到结果：${result === "NONE" ? "未中奖" : "卡牌 " + result}。`
+    );
+  });
+}
 
-/* =============================
-   Reset：重置当前账号数据
-   ============================= */
-
-resetBtn.addEventListener("click", () => {
-  if (!loggedIn) {
-    alert("Please log in first. / 请先登录账号。");
-    return;
-  }
-  if (
-    !confirm(
-      "Reset all data for this account? / 是否重置当前账号的所有数据？（账号本身不会被删除）"
-    )
-  ) {
-    return;
-  }
-
-  hideCoinButton();
-
-  state = {
-    totalSeconds: 0,
-    coinsSpent: 0,
-    cards: [],
-    coinsClaimed: 0,
-    coinEventsTriggered: 0
-  };
-
-  renderInventory();
-  renderStats();
-  flipCard.classList.remove("flipped");
-  cardFront.src = "./assets/cards/back.jpg";
-  cardBackImg.src = "./assets/cards/back.jpg";
-
-  syncState();
-  sendPresence(true);
-  log("Account data has been reset. / 当前账号的数据已清零。");
-});
-
-/* =============================
-   socket.io：totalTime + 在线用户
-   ============================= */
-
+/* Socket.io initialisation */
 if (typeof io !== "undefined") {
   socket = io();
 
@@ -890,22 +880,21 @@ if (typeof io !== "undefined") {
     renderOnlineUsers(users || []);
   });
 
+  // Local visual ticker so the global time label moves smoothly
+  // between server updates.
   function globalTick() {
-    if (globalTimerDisplay && isActiveForTimer()) {
+    if (globalTimerDisplay && !document.hidden) {
       globalSeconds += 1;
       globalTimerDisplay.textContent = fmtHMS(globalSeconds);
     }
     setTimeout(globalTick, 1000);
   }
+
   setTimeout(globalTick, 1000);
 }
 
-/* =============================
-   初始化 / Init
-   ============================= */
-
+/* Initial render */
 renderInventory();
 renderStats();
-
 if (cardFront) cardFront.src = "./assets/cards/back.jpg";
 if (cardBackImg) cardBackImg.src = "./assets/cards/back.jpg";
